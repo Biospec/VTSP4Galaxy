@@ -139,7 +139,8 @@ Input files
 | 2 : Sample metadata file      | csv     |
 +-------------------------------+---------+
 
-|This toolbox provides a set of tools to perform common signal processing techniques for vibrational spectra includes: (1) asymmetrically reweighted penalized least square smoothing (arPLS) for baseline correction; (2) Smooth using Gaussian filter; (3) normalize spectra using standard normal variate (SNV), extended multiplicative signal correction (EMSC) or to sum of squares of 1. A multivariate statistic called morphological scores is also provided to assess the signal-to-noise raito of each spectra, useful to remove poor samples.
+| This toolbox provides a set of tools to perform common signal processing techniques for vibrational spectra includes: (1) asymmetrically reweighted penalized least square smoothing (arPLS) for baseline correction; (2) Smooth using Gaussian filter; (3) normalize spectra using standard normal variate (SNV), extended multiplicative signal correction (EMSC) or to sum of squares of 1. A multivariate statistic called morphological scores is also provided to assess the signal-to-noise raito of each spectra, useful to remove poor samples.
+|	  
 
 
 ----------
