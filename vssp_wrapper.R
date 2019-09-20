@@ -63,11 +63,13 @@ if (listArguments[["baseline"]] == "yes"){
     z = arpls(data_work[i, ], lamda = smooth_param)
     data_work[i, ] = data_work[i, ] - z
   }
+  cat('\nBaseline correction performed with smooth parameter = ', smooth_param, '\n')
 }
 
 if (listArguments[["smooth"]] == "yes"){
   win_width <- as.numeric(listArguments$sm_param)
   data_work <- gaussian_sm(data_work, window_width = win_width)
+  cat('\nSignal smoothing performed with window width = ', win_width, '.\n')
 }
 
 if (listArguments[["norm_name"]] != "none"){
@@ -77,6 +79,7 @@ if (listArguments[["norm_name"]] != "none"){
     tot = normalise_tot(data_work),
     emsc = emsc(data_work, p = listArguments[["norm_param"]])
   )
+  cat('\nSpectra were normalized using ', norm_method, 'with the parameter of ', listArguments[["norm_param"]], '.\n')
 }
 
 if (listArguments[["mos"]] == "yes") {
@@ -85,25 +88,28 @@ if (listArguments[["mos"]] == "yes") {
   data_work <- cbind(data_work, ms)
   colnames(data_work)[nv+1] <- "mos"
   data_work <- as.data.frame(data_work)
+  cat('\nMorphological scores are calculated. \n')
 }
 
 ##saving
 filename_data <- listArguments[["output_data"]]
 filename_figures <- listArguments[["file_figures"]]
+data_to_save <- t(data_work)
+colnames(data_to_save) <- row.names(data_work)
 
-write.table(data_work, 
+write.table(t(data_to_save), 
             file = filename_data,
             quote = FALSE,
-            sep = ",")
+            sep = ",",
+  )
 
 pdf(filename_figures, onefile = TRUE)
 if (length(which(colnames(data_work) == "mos")) == 1)
   data4plot <- data_work[, -which(colnames(data_work) == "mos")] else
   data4plot <- data_work
-cat('colnames are :', xaxis, '\n')
-cat('nv is ', nv, '\n')
-plot(1:nv, data4plot[1, ], type = 'l')
-for (i in 2:ns) points(1:nv, data4plot[i, ], type = 'l')
+
+plot(xaxis, data4plot[1, ], type = 'l', ylab = "processed spectra")
+for (i in 2:ns) points(xaxis, data4plot[i, ], type = 'l')
 
 dev.off()
 
