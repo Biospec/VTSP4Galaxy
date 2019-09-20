@@ -1,0 +1,200 @@
+<tool id="vssp" name="Vibrational spectra signal processing toolbox" version="1.0.0">
+  <description>A collection of tools for pre-processing vibrational spectral data such as FT-IR and Raman spectra</description>
+  
+  <requirements>
+    <requirement type="package">r-batch</requirement>
+    <requirement type="package">r-rspectra</requirement>
+    <requirement type="package">r-mass</requirement>
+    <requirement type="package">r-matrix</requirement>
+    <requirement type="package">r-pracma</requirement>      
+  </requirements>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" />
+  </stdio>
+  
+  <command><![CDATA[
+  Rscript $__tool_directory__/vssp_wrapper.R
+  dataMatrix_in "$dataMatrix_in"
+  sampleMetadata_in "$sampleMetadata_in"
+  baseline "$bc.baseline"
+  baseline_param "$bc.bl_param"
+  norm_name "$norm.norm_type"
+  norm_param "$norm.norm_param"
+  smooth "$sm.smooth"
+  sm_param "$sm.sm_param"
+  mos "$mos"
+  output_log "$output_log"
+  output_data "$output_data"
+  file_figures "$figures"
+  ]]></command>    
+  
+  <inputs>
+    <param name="dataMatrix_in" type="data" label="Data matrix file" help="" format="csv" />
+    <param name="sampleMetadata_in" type="data" label="Sample metadata file" help="" format="csv" />
+    <conditional name="bc">
+	<param name="baseline" type="select" label="Baseline correction?">		
+		<option value="yes" selected="true">yes</option>
+		<option value="no" >no</option>
+	</param>
+	<when value="yes">
+		<param name="bl_param" type="integer" value="1000000" label="Smoothness parameter for arPLS" />
+	</when>
+	<when value="no">
+		<param name="bl_param" type="text" value="NA" label="Not applicable" />
+	</when>
+    </conditional>	
+    <conditional name="sm">
+	<param name="smooth" type="select" label="Smooth the spectra?">
+		<option value="no">no</option>
+		<option value="yes"  selected="true">yes</option>
+	</param>
+	<when value="no">
+		<param name="sm_param" type="text" value="NA" label="Not applicable" />
+	</when>
+	<when value="yes">
+		<param name="sm_param" type="integer" value="7" label="Smooth window width" />
+	</when>
+    </conditional>
+    <conditional name="norm">
+	  <param name="norm_type" type="select" label="Type of normalization">
+	  	<option value="none">none</option>
+		<option value="snv">Standard Normal Variate</option>
+	  	<option value="tot">To sum of squares of 1</option>
+		<option value="emsc" selected="true">Extended Multiplicative Signal Correction</option>
+	  </param>
+	  <when value="none">
+		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+	  </when>
+	  <when value="snv">
+		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+   	  </when>
+	  <when value="tot">
+		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+	  </when>
+	  <when value="emsc">
+		<param name="norm_param" type="integer" value="3" label="Normalization parameter: the order of polynomial" />
+	  </when>
+    </conditional>
+
+    <param name="mos" label="Calculate Signal-to-noise ratios using morphological scores?" type="select">
+	  <option value="no" selected="true">no</option>
+	  <option value="yes">yes</option>
+    </param>
+  </inputs>
+  
+  <outputs>
+    <data name="output_data" label="${tool.id}_output_data.csv" format="tabular" />
+    <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
+    <data name="figures" label="${tool.id}_figures.pdf" format="pdf" />
+  </outputs>
+
+  <tests>
+    <test>
+      <param name="dataMatrix_in" value="data_reg.csv"/>
+      <param name="sampleMetadata_in" value="conc_reg.csv"/>
+      <param name="baseline" value="yes" />
+      <param name="baseline_param" value="1000000" />
+      <param name="norm_name" value="none" />  
+      <param name="norm_param" value="5" />   
+      <param name="smooth" value="yes" />
+      <param name="sm_param" value="7" />
+      <param name="mos" value = "yes" />
+      <param name="output_log" value = "output_logs.txt" />
+      <param name="output_data" value = "output_data.csv" />
+      <param name="file_figures" value = "Figures.pdf" /> 
+    </test>
+  </tests>
+
+  
+  <help>
+
+
+===============================================
+Signal processing tools for vibrational spectra
+===============================================
+
+.. class:: infomark
+    
+**Authors** Yun Xu (Metaboflow, University of Liverpool) 
+    
+-----------
+Description
+-----------
+    
+| This tool provides a collection of signal processing methods aimed for vibrational spectra (e.g. FT-IR, Raman) data pre-processing.
+
+
+
+    
+-----------
+Input files
+-----------
+ 
++-------------------------------+---------+
+| Parameters:                   |  Format |
++===============================+=========+
+| 1 : Data matrix file          | csv     |
++-------------------------------+---------+
+| 2 : Sample metadata file      | csv     |
++-------------------------------+---------+
+
+|
+| For data source blocking, different data matrices shall placed side-by-side, first column shall be unique sample ids, e.g. (1,2,3,...), first row shall be data source labels (e.g. ESI+, ESI-, GC-MS etc) for each variable and saved as a .csv file. In addition, two meta files shall be provided, both in .csv format. One is sample metadata file in which sample labels shall be provided and will be used for labelling data points in the figures; another is data source metadata file in which a column of labels indicating the origin of each variable (e.g. ESI+, ESI-, GC-MS etc) shall be provided and will be used for blocking. To ensure that all the files are to be imported correctly, better manually set "Type" to "csv" instead of "Auto-detect" when using Galaxy "Get Data" tool.
+|
+| For factor blocking, data source metadata shall be ignored. The data matrix shall be placed as each column is a sample and each row is a variable. The first column shall be a unique description of each variable and will be used to identify PCA loadings; The first row shall be sample labels. The sample meta data shall contain experimental design information, each column is a factor, the header of each column is the name of the factor and the elements below are the names of levels of the samples for this factor. 
+|
+| Check https://github.com/Biospec/MBPCA_for_Galaxy/tree/master/test-data for examples.
+|
+|
+
+----------
+Parameters
+----------
+	  
+Multiple data sources blocking?
+	| "yes" for data source blocking and data source metafile shall be provided, "no" for factor blocking.
+	|
+
+Chose type of multiblock model
+	| Two MB-PCA models supported: concensus PCA and hierachical PCA, see Westerhuis, J. A. et al. (1998) for details.	
+	|	
+
+The number of Principal Components
+	| The number of principal components to be extracted, 2 by default. The output figures would always plot PC 1 vs. PC 2, even this parameter is set to be higher than 2. The scores and loadings of all PCs will be saved to the resulting files.
+	|
+
+------------
+Output files
+------------
+
+MB_PCA_Super_scores
+	| The super scores of the model.
+	|
+
+MB_PCA_Block_scores
+	| The block scores of the model.
+	|
+
+MB_PCA_loadings
+	| The block loadings of the model.
+	|
+
+figure.pdf
+	| The super and block scores plots. 
+	| 
+
+MB_PCA_log.txt
+	| Text file with all messages, check if the numbers of samples, variables and blocks match the expectation or any error message if the tool failed to run.
+	|
+    
+  
+</help>
+  
+  <citations>
+    <citation type="doi">10.1002/cem.811</citation>
+    <citation type="doi">10.1007/s11306-011-0361-9</citation>
+    <citation type="doi">10.1002/(SICI)1099-128X(199809/10)12%3A5%3C301%3A%3AAID-CEM515%3E3.0.CO%3B2-S</citation>
+  </citations>
+  
+</tool>
