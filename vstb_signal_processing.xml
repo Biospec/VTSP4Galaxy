@@ -1,0 +1,191 @@
+<tool id="vssp" name="Vibrational spectra signal processing toolbox" version="1.0.0">
+  <description>A collection of tools for pre-processing vibrational spectral data such as FT-IR and Raman spectra</description>
+  
+  <requirements>
+    <requirement type="package">r-batch</requirement>
+    <requirement type="package">r-rspectra</requirement>
+    <requirement type="package">r-mass</requirement>
+    <requirement type="package">r-matrix</requirement>
+    <requirement type="package">r-pracma</requirement>      
+  </requirements>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" />
+  </stdio>
+  
+  <command><![CDATA[
+  Rscript $__tool_directory__/vssp_wrapper.R
+  dataMatrix_in "$dataMatrix_in"
+  sampleMetadata_in "$sampleMetadata_in"
+  baseline "$bc.baseline"
+  baseline_param "$bc.bl_param"
+  norm_name "$norm.norm_type"
+  norm_param "$norm.norm_param"
+  smooth "$sm.smooth"
+  sm_param "$sm.sm_param"
+  mos "$mos"
+  output_log "$output_log"
+  output_data "$output_data"
+  file_figures "$figures"
+  ]]></command>    
+  
+  <inputs>
+    <param name="dataMatrix_in" type="data" label="Data matrix file" help="" format="csv" />
+    <param name="sampleMetadata_in" type="data" label="Sample metadata file" help="" format="csv" />
+    <conditional name="bc">
+	<param name="baseline" type="select" label="Baseline correction?">		
+		<option value="yes" selected="true">yes</option>
+		<option value="no" >no</option>
+	</param>
+	<when value="yes">
+		<param name="bl_param" type="integer" value="1000000" label="Smoothness parameter for arPLS" />
+	</when>
+	<when value="no">
+		<param name="bl_param" type="text" value="NA" label="Not applicable" />
+	</when>
+    </conditional>	
+    <conditional name="sm">
+	<param name="smooth" type="select" label="Smooth the spectra?">
+		<option value="no">no</option>
+		<option value="yes"  selected="true">yes</option>
+	</param>
+	<when value="no">
+		<param name="sm_param" type="text" value="NA" label="Not applicable" />
+	</when>
+	<when value="yes">
+		<param name="sm_param" type="integer" value="7" label="Smooth window width" />
+	</when>
+    </conditional>
+    <conditional name="norm">
+	  <param name="norm_type" type="select" label="Type of normalization">
+	  	<option value="none">none</option>
+		<option value="snv">Standard Normal Variate</option>
+	  	<option value="tot">To sum of squares of 1</option>
+		<option value="emsc" selected="true">Extended Multiplicative Signal Correction</option>
+	  </param>
+	  <when value="none">
+		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+	  </when>
+	  <when value="snv">
+		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+   	  </when>
+	  <when value="tot">
+		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+	  </when>
+	  <when value="emsc">
+		<param name="norm_param" type="integer" value="3" label="Normalization parameter: the order of polynomial" />
+	  </when>
+    </conditional>
+
+    <param name="mos" label="Calculate Signal-to-noise ratios using morphological scores?" type="select">
+	  <option value="no" selected="true">no</option>
+	  <option value="yes">yes</option>
+    </param>
+  </inputs>
+  
+  <outputs>
+    <data name="output_data" label="${tool.id}_output_data.csv" format="tabular" />
+    <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
+    <data name="figures" label="${tool.id}_figures.pdf" format="pdf" />
+  </outputs>
+
+  <tests>
+    <test>
+      <param name="dataMatrix_in" value="data_reg.csv"/>
+      <param name="sampleMetadata_in" value="conc_reg.csv"/>
+      <param name="baseline" value="yes" />
+      <param name="baseline_param" value="1000000" />
+      <param name="norm_name" value="none" />  
+      <param name="norm_param" value="5" />   
+      <param name="smooth" value="yes" />
+      <param name="sm_param" value="7" />
+      <param name="mos" value = "yes" />
+      <param name="output_log" value = "output_logs.txt" />
+      <param name="output_data" value = "output_data.csv" />
+      <param name="file_figures" value = "Figures.pdf" /> 
+    </test>
+  </tests>
+
+  
+  <help>
+
+
+===============================================
+Signal processing tools for vibrational spectra
+===============================================
+
+.. class:: infomark
+    
+**Authors** Yun Xu (Metaboflow, University of Liverpool) 
+    
+-----------
+Description
+-----------
+    
+| This tool provides a collection of signal processing methods aimed for vibrational spectra (e.g. FT-IR, Raman) data pre-processing.
+
+
+
+    
+-----------
+Input files
+-----------
+ 
++-------------------------------+---------+
+| Parameters:                   |  Format |
++===============================+=========+
+| 1 : Data matrix file          | csv     |
++-------------------------------+---------+
+| 2 : Sample metadata file      | csv     |
++-------------------------------+---------+
+
+|This toolbox provides a set of tools to perform common signal processing techniques for vibrational spectra includes: (1) asymmetrically reweighted penalized least square smoothing (arPLS) for baseline correction; (2) Smooth using Gaussian filter; (3) normalize spectra using standard normal variate (SNV), extended multiplicative signal correction (EMSC) or to sum of squares of 1. A multivariate statistic called morphological scores is also provided to assess the signal-to-noise raito of each spectra, useful to remove poor samples.
+
+
+----------
+Parameters
+----------
+	  
+Baseline correction?
+	| "yes" for performing baseline correction using arpls, a smooth parameter need to be provided with 1000000 as default, "no" to skip.
+	|
+
+Smooth the spectra?
+	| "yes" for smoothing using gaussian filter, a window width need to be provided with 7 as default, "no" to skip.
+	|	
+
+Type of normalization
+	| Select signal normalization method, can be SNV, to sum of squares of 1 or EMSC. EMSC requires the order of polynomial to be set with 3 as default. Chose "none" to skip.
+	|
+Calculate Signal-to-noise ratios using morphological scores?
+	| Chose "yes" to calculate morphological scores for each spectrum which will be added as an extra column named "mos" to the final results, "no" to skip. A rule of thumb is that mos lower than 3 are the ones of poor SNR.
+	|
+
+------------
+Output files
+------------
+
+vssp_output_data.csv
+	| The spectra after chosen signal processing steps performed. An extra column of "mos" would appear if the user had selected to calculate morphological scores.
+	|
+
+
+vssp_figure.pdf
+	| A figure of all the processed spectra plotted together. 
+	| 
+
+vssp_output_log.txt
+	| Text file of running messages.
+	|
+    
+  
+</help>
+  
+  <citations>
+    <citation type="doi">10.1039/C4AN01061B</citation>
+    <citation type="doi">10.1021/ac020194w</citation>
+    <citation type="doi">10.1366/0003702894202201</citation>
+    <citation type="doi">10.1016/S0169-7439(99)00066-0</citation>
+  </citations>
+  
+</tool>
