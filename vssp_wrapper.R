@@ -6,7 +6,7 @@
 #Startup log
 sink("startup_log.txt")
 
-pkgs=c("RSpectra", "batch", "MASS", "Matrix", "pracma")
+pkgs=c("RSpectra", "batch", "MASS", "Matrix", "pracma", "signal")
 
 for(pkg in pkgs) {
   suppressPackageStartupMessages( stopifnot( library(pkg, quietly=TRUE, logical.return=TRUE, character.only=TRUE)))
@@ -63,13 +63,20 @@ if (listArguments[["baseline"]] == "yes"){
     z = arpls(data_work[i, ], lamda = smooth_param)
     data_work[i, ] = data_work[i, ] - z
   }
+  colnames(data_work) <- as.character(xaxis)
   cat('\nBaseline correction performed with smooth parameter = ', smooth_param, '\n')
 }
 
 if (listArguments[["smooth"]] == "yes"){
-  win_width <- as.numeric(listArguments$sm_param)
-  data_work <- gaussian_sm(data_work, window_width = win_width)
-  cat('\nSignal smoothing performed with window width = ', win_width, '.\n')
+  sg_win <- as.numeric(listArguments$sm_win)
+  sg_order <- as.numeric(listArguments$sm_order)
+  sg_m <- as.numeric(listArguments$sm_derv)
+  for (i in 1:ns)
+    data_work[i, ] <- sgolayfilt(data_work[i, ], p=sg_order, n=sg_win, m = sg_m)
+  colnames(data_work) <- as.character(xaxis)
+  cat('\nSignal smoothing/derivative performed with window width = ', sg_win, 
+      ', polynomial order = ', sg_order, ' and k = ', sg_m, '. .\n')
+#  data_work <- as.data.frame(data_work)
 }
 
 if (listArguments[["norm_name"]] != "none"){
@@ -79,6 +86,8 @@ if (listArguments[["norm_name"]] != "none"){
     tot = normalise_tot(data_work),
     emsc = emsc(data_work, p = listArguments[["norm_param"]])
   )
+  #data_work <- as.data.frame(data_work, col.names = as.characters(xaxis))
+  colnames(data_work) <- as.character(xaxis)
   cat('\nSpectra were normalized using ', norm_method, 'with the parameter of ', listArguments[["norm_param"]], '.\n')
 }
 
@@ -86,8 +95,7 @@ if (listArguments[["mos"]] == "yes") {
   mos_scores <- mos(as.matrix(data_work))
   ms <- mos_scores$ms
   data_work <- cbind(data_work, ms)
-  colnames(data_work)[nv+1] <- "mos"
-  data_work <- as.data.frame(data_work)
+  colnames(data_work) <- c(as.character(xaxis), "mos")
   cat('\nMorphological scores are calculated. \n')
 }
 
@@ -95,12 +103,12 @@ if (listArguments[["mos"]] == "yes") {
 filename_data <- listArguments[["output_data"]]
 filename_figures <- listArguments[["file_figures"]]
 data_to_save <- t(data_work)
-colnames(data_to_save) <- row.names(data_work)
+# colnames(data_to_save) <- row.names(data_work)
 
-write.table(t(data_to_save), 
+write.table(data_to_save, 
             file = filename_data,
             quote = FALSE,
-            sep = ",",
+            sep = ","
   )
 
 pdf(filename_figures, onefile = TRUE)
