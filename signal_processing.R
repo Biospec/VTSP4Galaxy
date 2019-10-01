@@ -147,14 +147,17 @@ auto_sc <- function(data = NULL) {
   ns <- dim(data)[1]
   nv <- dim(data)[2]
   data_sd <- apply(data, 2, sd)
+  scale_factor <- data_sd
   null_var <- NULL
   if (any(data_sd == 0))
     null_var <- which(data_sd == 0)
   data_sd <- t(matrix(as.matrix(data_sd), nv, ns))
-  data_mean <- t(matrix(as.matrix(colMeans(data)), nv, ns))
-  results <- (data - data_mean) / data_sd
+  data_centre <- colMeans(data)
+  data_mean <- t(matrix(as.matrix(data_centre), nv, ns))
+  data_scaled <- (data - data_mean) / data_sd
   if (!is.null(null_var)) 
-    results[, null_var] <- 0
+    data_scaled[, null_var] <- 0
+  results <- list(data = data_scaled, scale_factor = scale_factor, data_centre = data_centre)
   return(results)
 }
 
@@ -162,14 +165,17 @@ pareto_sc <- function(data = NULL) {
   ns <- dim(data)[1]
   nv <- dim(data)[2]
   data_sd <- apply(data, 2, sd)
+  scale_factor <- data_sd
   null_var <- NULL
   if (any(data_sd == 0))
     null_var <- which(data_sd == 0)
   data_sd <- t(matrix(as.matrix(data_sd), nv, ns))
-  data_mean <- t(matrix(as.matrix(colMeans(data)), nv, ns))
-  results <- (data - data_mean) / sqrt(data_sd)
+  data_centre <- colMeans(data)
+  data_mean <- t(matrix(as.matrix(data_centre), nv, ns))
+  data_scaled <- (data - data_mean) / sqrt(data_sd)
   if (!is.null(null_var)) 
-    results[, null_var] <- 0
+    data_scaled[, null_var] <- 0
+  results <- list(data = data_scaled, scale_factor = scale_factor, data_centre = data_centre)
   return(results)
 }
 

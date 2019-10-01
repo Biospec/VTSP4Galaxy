@@ -1,0 +1,187 @@
+<tool id="vssp_dfa" name="PC-DFA for Galaxy" version="1.0.0">
+  <description>Principal component - Discrimnant function analysis (PC-DFA) for Galaxy</description>
+  
+  <requirements>
+    <requirement type="package">r-batch</requirement>
+    <requirement type="package">r-rspectra</requirement>
+    <requirement type="package">r-mass</requirement>
+    <requirement type="package">r-matrix</requirement>
+    <requirement type="package">r-pracma</requirement>      
+  </requirements>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" />
+  </stdio>
+  
+  <command><![CDATA[
+  Rscript $__tool_directory__/vseda_wrapper.R
+  dataMatrix_in "$dataMatrix_in"
+  sampleMetadata_in "$sampleMetadata_in"
+  test_flag "$tst.test"
+  test_data "$tst.test_data"
+  test_meta "$tst.test_meta"
+  mos_flag "$mos.mos_filter"
+  mos_thresh "$mos.mos_thresh"
+  trans_type "$transform_type"
+  scaling_type "$scaling_type"
+  no_pcs "$no_pcs"
+  no_dfs "$no_dfs"
+  output_log "$output_log"
+  output_data "$output_data"
+  file_figures "$figures"
+  ]]></command>    
+  
+  <inputs>
+    <param name="dataMatrix_in" type="data" label="Data matrix file" help="" format="csv" />
+    <param name="sampleMetadata_in" type="data" label="Sample metadata file" help="" format="csv" />
+    <conditional name="tst">
+	<param name="test" type="select" label="Have an independent test set?">		
+		<option value="yes">yes</option>
+		<option value="no" selected="true">no</option>
+	</param>
+	<when value="yes">
+		<param name="test_data" type="data" label="Independent test set to be projected into PC-DFA space" help="" format="csv" />
+		<param name="test_meta" type="data" label="Meta data of the independent test set" help="" format="csv" />
+	</when>
+	<when value="no">
+		<param name="test_data" type="text" value="NA" label="Not applicable" />
+		<param name="test_meta" type="text" value="NA" label="Not applicable" />
+	</when>
+    </conditional>	
+    <conditional name="mos">
+	<param name="mos_filter" type="select" label="Remove spectra with low MOS?">
+		<option value="no" selected="true">no</option>
+		<option value="yes">yes</option>
+	</param>
+	<when value="no">
+		<param name="mos_thresh" type="text" value="NA" label="Not applicable" />
+	</when>
+	<when value="yes">
+		<param name="mos_thresh" type="integer" value="3" label="MOS threshold" />
+	</when>
+    </conditional>
+    <param name="transform_type" type="select" label="Type of transformation">
+		<option value="none" selected="true">none</option>
+		<option value="log">Log transform </option>
+		<option value="asinh">Inverse hyperbolic sine transform </option>
+		<option value="sqrt">Square root transform </option>
+    </param>
+    <param name="scaling_type" type="select" label="Type of scaling">
+ 	  	<option value="none" selected="true">none</option>
+		<option value="auto">Auto scaling</option>
+	  	<option value="pareto">Pareto scaling</option>
+    </param>
+
+    <param name="no_pcs" type="integer" value="10" label="The number of principal components to be used for DFA" />
+    <param name="no_dfs" type="integer" value="3" label="The number of discriminant functions to be extracted" />
+  </inputs>
+  
+  <outputs>
+    <data name="output_data" label="${tool.id}_pcdfa_data.csv" format="tabular" />
+    <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
+    <data name="figures" label="${tool.id}_figures.pdf" format="pdf" />
+  </outputs>
+
+  <tests>
+    <test>
+      <param name="dataMatrix_in" value="data_dfa.csv"/>
+      <param name="sampleMetadata_in" value="meta_dfa.csv"/>
+      <param name="test_flag" value="yes" />
+      <param name="test_data" value="datatst_dfa.csv" />
+      <param name="test_meta" value="metatst_dfa.csv" />  
+      <param name="mos_flag" value="yes" />   
+      <param name="mos_thresh" value="3" />
+      <param name="trans_type" value="none" />
+      <param name="scaling_type" value = "log" />
+      <param name="no_pcs" vlaue="10" />
+      <param name="no_dfs" value="3" />
+      <param name="output_log" value = "output_logs.txt" />
+      <param name="output_data" value = "output_pcdfa_data.csv" />
+      <param name="file_figures" value = "Figures.pdf" /> 
+    </test>
+  </tests>
+
+  
+  <help>
+
+
+=====================================================
+Principal component - discriminant function analysis
+=====================================================
+
+.. class:: infomark
+    
+**Authors** Yun Xu (Metaboflow, University of Liverpool) 
+    
+-----------
+Description
+-----------
+    
+| This tool provides a function for principal component - Fisher discriminant function analysis (PC-DFA)
+
+
+
+    
+-----------
+Input files
+-----------
+ 
++-------------------------------+---------+
+| Parameters:                   |  Format |
++===============================+=========+
+| 1 : Data matrix file          | csv     |
++-------------------------------+---------+
+| 2 : Sample metadata file      | csv     |
++-------------------------------+---------+
+
+| 
+|
+
+----------
+Parameters
+----------
+	  
+Have an independent test set?
+	| "yes" to project an independent test set into the PC-DFA space for validation purpose, "no" to skip.
+	|
+
+Remove spectra with low MOS?
+	| "yes" to remove spectra with morphological scores lower than a specified threshold (i.e. low signal-to-noise ratio samples), "no" to skip. The removal of samples are applied to both training data and indepedent test set.
+	|	
+
+Type of transofrmation
+	| Select data transformation methods, can be log transform (log scaling), inverse hyperbolic sine transform (asinh transform) or square root transform. Chose "none" to skip.
+	|
+The number of principal components to be used for DFA
+	| Default is 10.
+	|
+The number of discriminant functions to be extracted
+	| Default is 3.
+	|
+
+
+------------
+Output files
+------------
+
+vssp_dfa_pcdfa_data.csv
+	| The PC-DFA scores and loadings from PC-DFA, DFA scores of the indepedent test set are also included if the test set is available
+	|
+
+
+vssp_dfa_figure.pdf
+	| PC-DFA scores plot. If test set is available, their PC-DFA scores are presented as filled symbols.
+	| 
+
+vssp_dfa_output_log.txt
+	| Text file of running messages.
+	|
+    
+  
+</help>
+  
+  <citations>
+    <citation type="doi">10.1093/bioinformatics/18.suppl_1.S96</citation>
+  </citations>
+  
+</tool>
