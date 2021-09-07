@@ -1,0 +1,116 @@
+<tool id="vssp_bl" name="Vibrational spectra signal processing - baseline correction" version="1.0.0">
+  <description>Baseline correction using arPLS algorithm</description>
+  
+  <requirements>
+    <requirement type="package">r-batch</requirement>
+    <requirement type="package">r-rspectra</requirement>
+    <requirement type="package">r-mass</requirement>
+    <requirement type="package">r-matrix</requirement>
+    <requirement type="package">r-pracma</requirement>   
+    <requirement type="package">r-signal</requirement>   
+  </requirements>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" />
+  </stdio>
+  
+  <command><![CDATA[
+  Rscript $__tool_directory__/vssp_baseline_wrapper.R
+  dataMatrix_in "$dataMatrix_in"
+  baseline_param "$bl_param"
+  output_log "$output_log"
+  output_data "$output_data"
+  file_figures "$figures"
+  ]]></command>    
+  
+  <inputs>
+    <param name="dataMatrix_in" type="data" label="Data matrix file" help="" format="csv" />
+    <param name="bl_param" type="integer" value="1000000" label="Smoothness parameter for arPLS" />
+  </inputs>
+  
+  <outputs>
+    <data name="output_data" label="${tool.id}_output_data.csv" format="csv" />
+    <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
+    <data name="figures" label="${tool.id}_figures.pdf" format="pdf" />
+  </outputs>
+
+  <tests>
+    <test>
+      <param name="dataMatrix_in" value="data_reg.csv"/>
+      <param name="baseline_param" value="1000000" />
+      <param name="output_log" value = "output_logs.txt" />
+      <param name="output_data" value = "output_data.csv" />
+      <param name="file_figures" value = "Figures.pdf" /> 
+    </test>
+  </tests>
+
+  
+  <help>
+
+
+====================================
+Baseline correction using arPLS
+====================================
+
+.. class:: infomark
+    
+**Authors** Yun Xu (Metaboflow, University of Liverpool) 
+    
+-----------
+Description
+-----------
+    
+| This tool provides a function for baseline correction using arPLS algorithm.
+
+
+
+    
+-----------
+Input files
+-----------
+ 
++-------------------------------+---------+
+| Parameters:                   |  Format |
++===============================+=========+
+| 1 : Data matrix file          | csv     |
++-------------------------------+---------+
+
+
+|
+
+----------
+Parameters
+----------
+	  
+Smooth parameter
+	| A parameter to control the complexity of estimated baseline, lower the number more complex the baseline will be. By default it is set to 1,000,000.
+	|
+
+------------
+Output files
+------------
+
+vssp_output_data.csv
+	| The spectra after baseline correction.
+	|
+
+
+vssp_figure.pdf
+	| A figure of all the processed spectra plotted together. 
+	| 
+
+vssp_output_log.txt
+	| Text file of running messages.
+	|
+    
+  
+</help>
+  
+  <citations>
+    <citation type="doi">10.1039/C4AN01061B</citation>
+    <citation type="doi">10.1021/ac020194w</citation>
+    <citation type="doi">10.1366/0003702894202201</citation>
+    <citation type="doi">10.1016/S0169-7439(99)00066-0</citation>
+  </citations>
+  
+</tool>

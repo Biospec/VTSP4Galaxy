@@ -1,0 +1,129 @@
+<tool id="vssp_sgfilt" name="Vibrational spectra signal processing toolbox - Savizky-Golay filter" version="1.0.0">
+  <description>Perform smoothing and calculate kth derivative using Savizky-Golay filter</description>
+  
+  <requirements>
+    <requirement type="package">r-batch</requirement>
+    <requirement type="package">r-rspectra</requirement>
+    <requirement type="package">r-mass</requirement>
+    <requirement type="package">r-matrix</requirement>
+    <requirement type="package">r-pracma</requirement>   
+    <requirement type="package">r-signal</requirement>   
+  </requirements>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" />
+  </stdio>
+  
+  <command><![CDATA[
+  Rscript $__tool_directory__/vssp_sgfilt_wrapper.R
+  dataMatrix_in "$dataMatrix_in"
+  sm_win "$sm_win"
+  sm_order "$sm_order"
+  sm_derv "$sm_derv"
+  output_log "$output_log"
+  output_data "$output_data"
+  file_figures "$figures"
+  ]]></command>    
+  
+  <inputs>
+    <param name="dataMatrix_in" type="data" label="Data matrix file" help="" format="csv" />
+    <param name="sm_win" type="integer" value="7" label="Smooth window width" />
+    <param name="sm_order" type="integer" value="3" label="Order of polynomial" />
+    <param name="sm_derv" type="integer" value="0" label="kth derivative, 0 for smoothing" />
+  </inputs>
+  
+  <outputs>
+    <data name="output_data" label="${tool.id}_output_data.csv" format="csv" />
+    <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
+    <data name="figures" label="${tool.id}_figures.pdf" format="pdf" />
+  </outputs>
+
+  <tests>
+    <test>
+      <param name="dataMatrix_in" value="data_reg.csv"/>
+      <param name="sm_win" value="7" />
+      <param name="sm_order" value="3" />
+      <param name="sm_derv" value="0" />
+      <param name="output_log" value = "output_logs.txt" />
+      <param name="output_data" value = "output_data.csv" />
+      <param name="file_figures" value = "Figures.pdf" /> 
+    </test>
+  </tests>
+
+  
+  <help>
+
+
+===============================================
+Apply Savizky-Golay filter to the spectra
+===============================================
+
+.. class:: infomark
+    
+**Authors** Yun Xu (Metaboflow, University of Liverpool) 
+    
+-----------
+Description
+-----------
+    
+| Perform smoothing and/or calculate kth derivative of the spectra using Savizky-Golay filter.
+
+
+
+    
+-----------
+Input files
+-----------
+ 
++-------------------------------+---------+
+| Parameters:                   |  Format |
++===============================+=========+
+| 1 : Data matrix file          | csv     |
++-------------------------------+---------+
+|
+
+----------
+Parameters
+----------
+	  
+Smooth window width
+	| Define the width of moving window, must be an odd number, e.g. 3, 5, 7, set to 7 by default.
+	|
+
+Order of polynomial
+	| Set the polynomial degree, 3 by default. This paramter and smooth window width together control the amount of smoothing effect applied to spectra, more smoothing will be applied with wider window width and lower polynomial degree.
+	|	
+
+kth derivative, 0 for smoothing
+	| Calculate kth derivative, k = 0 for smoothing.
+	|
+
+
+------------
+Output files
+------------
+
+vssp_output_data.csv
+	| The spectra after chosen signal processing steps performed. An extra column of "mos" would appear if the user had selected to calculate morphological scores.
+	|
+
+
+vssp_figure.pdf
+	| A figure of all the processed spectra plotted together. 
+	| 
+
+vssp_output_log.txt
+	| Text file of running messages.
+	|
+    
+  
+</help>
+  
+  <citations>
+    <citation type="doi">10.1039/C4AN01061B</citation>
+    <citation type="doi">10.1021/ac020194w</citation>
+    <citation type="doi">10.1366/0003702894202201</citation>
+    <citation type="doi">10.1016/S0169-7439(99)00066-0</citation>
+  </citations>
+  
+</tool>

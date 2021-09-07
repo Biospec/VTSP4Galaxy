@@ -1,0 +1,112 @@
+<tool id="vssp_mos" name="Vibrational spectra signal processing - morphological scores" version="1.0.0">
+  <description>Estimate signal-to-noise ratio using morphological scores</description>
+  
+  <requirements>
+    <requirement type="package">r-batch</requirement>
+    <requirement type="package">r-rspectra</requirement>
+    <requirement type="package">r-mass</requirement>
+    <requirement type="package">r-matrix</requirement>
+    <requirement type="package">r-pracma</requirement>   
+    <requirement type="package">r-signal</requirement>   
+  </requirements>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" />
+  </stdio>
+  
+  <command><![CDATA[
+  Rscript $__tool_directory__/vssp_mos_wrapper.R
+  dataMatrix_in "$dataMatrix_in"
+  sampleMetadata_in "$sampleMetadata_in"
+  output_log "$output_log"
+  output_meta "$output_meta"
+  file_figures "$figures"
+  ]]></command>    
+  
+  <inputs>
+    <param name="dataMatrix_in" type="data" label="Data matrix file" help="" format="csv" />
+    <param name="sampleMetadata_in" type="data" label="Meta data file" help = "" format="csv" />
+  </inputs>
+  
+  <outputs>
+    <data name="output_meta" label="${tool.id}_output_meta.csv" format="csv" />
+    <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
+    <data name="figures" label="${tool.id}_figures.pdf" format="pdf" />
+  </outputs>
+
+  <tests>
+    <test>
+      <param name="dataMatrix_in" value="data_reg.csv"/>
+      <param name="norm_name" value="snv" />
+      <param name="norm_param" value="NA" />
+      <param name="output_log" value = "output_logs.txt" />
+      <param name="output_data" value = "output_data.csv" />
+      <param name="file_figures" value = "Figures.pdf" /> 
+    </test>
+  </tests>
+
+  
+  <help>
+
+
+==========================================================
+Multivariate Signal-to-noise ratio (morphological scores)
+==========================================================
+
+.. class:: infomark
+    
+**Authors** Yun Xu (Metaboflow, University of Liverpool) 
+    
+-----------
+Description
+-----------
+    
+| This tool provides a function for signal-to-noise ratio measurment using morphological scores. The calculated scores will be added to the meta data.
+|
+
+
+
+    
+-----------
+Input files
+-----------
+ 
++-------------------------------+---------+
+| Parameters:                   |  Format |
++===============================+=========+
+| 1 : Data matrix file          | csv     |
++-------------------------------+---------+
+| 2 : Meta matrix file          | csv     |
++-------------------------------+---------+
+
+|
+
+
+------------
+Output files
+------------
+
+vssp_mos_output_meta.csv
+	| The updated meta data with morphological scores.
+	|
+
+
+vssp_mos_figure.pdf
+	| A barchart of all the morphological scores
+	| 
+
+vssp_output_log.txt
+	| Text file of running messages.
+	|
+    
+  
+</help>
+  
+  <citations>
+    <citation type="doi">10.1039/C4AN01061B</citation>
+    <citation type="doi">10.1021/ac020194w</citation>
+    <citation type="doi">10.1366/0003702894202201</citation>
+    <citation type="doi">10.1016/S0169-7439(99)00066-0</citation>
+  </citations>
+  
+</tool>

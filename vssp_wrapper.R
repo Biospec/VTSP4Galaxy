@@ -47,15 +47,23 @@ model_type <- "Vibrational Spectral signal processing" ## module name
 cat("\nStart of the '", model_type, "' Galaxy module call: ",
     format(Sys.time(), "%a %d %b %Y %X"), "\n", sep="")
 
-data_mat <- t(read.csv(listArguments[["dataMatrix_in"]], 
-                                 header = TRUE,
-                                 row.names = 1))
+data_mat <- read.csv(listArguments[["dataMatrix_in"]], header = TRUE, row.names = NULL)
+meta_mat <- read.csv(listArguments[["sampleMetadata_in"]], header = TRUE, row.names = NULL)
+
+col_ids <- colnames(data_mat)
+
+
+xaxis <- as.numeric(data_mat[, 1])
+data_mat <- t(as.matrix(data_mat[, -1]))
+col_ids <- col_ids[-1]
+
 data_work <- data_mat
+# colnames_work <- colnames(data_work)
+# rownames_work <- rownames(data_work)
 ns <- dim(data_work)[1]
 nv <- dim(data_work)[2]
 
-xaxis <- as.numeric(colnames(data_mat))
-if (any(is.na(xaxis))) xaxis <- 1:nv
+if (is.null(xaxis)) xaxis <- 1:nv
 
 if (listArguments[["baseline"]] == "yes"){
   smooth_param <- as.numeric(listArguments[["baseline_param"]])
@@ -63,7 +71,7 @@ if (listArguments[["baseline"]] == "yes"){
     z = arpls(data_work[i, ], lamda = smooth_param)
     data_work[i, ] = data_work[i, ] - z
   }
-  colnames(data_work) <- as.character(xaxis)
+#  colnames(data_work) <- as.character(xaxis)
   cat('\nBaseline correction performed with smooth parameter = ', smooth_param, '\n')
 }
 
@@ -73,10 +81,9 @@ if (listArguments[["smooth"]] == "yes"){
   sg_m <- as.numeric(listArguments$sm_derv)
   for (i in 1:ns)
     data_work[i, ] <- sgolayfilt(data_work[i, ], p=sg_order, n=sg_win, m = sg_m)
-  colnames(data_work) <- as.character(xaxis)
-  cat('\nSignal smoothing/derivative performed with window width = ', sg_win, 
+#  colnames(data_work) <- as.character(xaxis)
+  cat('\nSignal smoothing/derivative performed using Savizky-Golay filter with window width = ', sg_win, 
       ', polynomial order = ', sg_order, ' and k = ', sg_m, '. .\n')
-#  data_work <- as.data.frame(data_work)
 }
 
 if (listArguments[["norm_name"]] != "none"){
@@ -87,36 +94,52 @@ if (listArguments[["norm_name"]] != "none"){
     emsc = emsc(data_work, p = listArguments[["norm_param"]])
   )
   #data_work <- as.data.frame(data_work, col.names = as.characters(xaxis))
-  colnames(data_work) <- as.character(xaxis)
   cat('\nSpectra were normalized using ', norm_method, 'with the parameter of ', listArguments[["norm_param"]], '.\n')
 }
 
 if (listArguments[["mos"]] == "yes") {
   mos_scores <- mos(as.matrix(data_work))
   ms <- mos_scores$ms
-  data_work <- cbind(data_work, ms)
-  colnames(data_work) <- c(as.character(xaxis), "mos")
-  cat('\nMorphological scores are calculated. \n')
+  meta_names <- colnames(meta_mat)
+  meta_mat <- cbind(meta_mat, ms)
+  colnames(meta_mat) <- c(meta_names, "morphological_scores")
+#  colnames(data_work) <- c(as.character(xaxis), "mos")
+  cat('\nMorphological scores are calculated and saved in the meta data. \n')
 }
 
 ##saving
 filename_data <- listArguments[["output_data"]]
+filename_meta <- listArguments[["output_meta"]]
 filename_figures <- listArguments[["file_figures"]]
-data_to_save <- t(data_work)
-# colnames(data_to_save) <- row.names(data_work)
+if (is.null(xaxis)){
+  data_to_save <- cbind(xaxis, t(data_work))
+  colnames(data_to_save) <- c('xaxis', col_ids)
+} else {
+  data_to_save <- t(data_work)
+  colnames(data_to_save) <- col_ids
+}
 
 write.table(data_to_save, 
             file = filename_data,
             quote = FALSE,
-            sep = ","
+            sep = ",",
+            row.names = FALSE
   )
+cat("\n Processed data saved. \n")
+
+write.table(meta_mat,
+            file = filename_meta,
+            quote = FALSE,
+            sep = ",",
+            row.names = FALSE)
+cat("\n Processed meta information saved. \n")
 
 pdf(filename_figures, onefile = TRUE)
-if (length(which(colnames(data_work) == "mos")) == 1)
-  data4plot <- data_work[, -which(colnames(data_work) == "mos")] else
-  data4plot <- data_work
 
-plot(xaxis, data4plot[1, ], type = 'l', ylab = "processed spectra")
+
+data4plot <- data_work
+
+plot(xaxis, data4plot[1, ], type = 'l', xlab = "xaxis", ylab = "processed spectra")
 for (i in 2:ns) points(xaxis, data4plot[i, ], type = 'l')
 
 dev.off()

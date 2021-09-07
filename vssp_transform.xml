@@ -1,0 +1,113 @@
+<tool id="vssp_trans" name="Data pre-processing - data transformation" version="1.0.0">
+  <description>Signal normalization using SNV, EMSC or to a unit norm</description>
+  
+  <requirements>
+    <requirement type="package">r-batch</requirement>
+    <requirement type="package">r-rspectra</requirement>
+    <requirement type="package">r-mass</requirement>
+    <requirement type="package">r-matrix</requirement>
+    <requirement type="package">r-pracma</requirement>   
+    <requirement type="package">r-signal</requirement>   
+  </requirements>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" />
+  </stdio>
+  
+  <command><![CDATA[
+  Rscript $__tool_directory__/vssp_transform_wrapper.R
+  dataMatrix_in "$dataMatrix_in"
+  trans_name "$trans_name"
+  output_log "$output_log"
+  output_data "$output_data"
+  ]]></command>    
+  
+  <inputs>
+    <param name="dataMatrix_in" type="data" label="Data matrix file" help="" format="csv" />
+    <param name="trans_name" type="select" label="Type of transformation">
+	  	<option value="none" selected="true">none</option>
+		<option value="log">log</option>
+	  	<option value="asinh">asinh</option>
+                <option value="sqrt">sqrt</option>
+    </param>
+  </inputs>
+  
+  <outputs>
+    <data name="output_data" label="${tool.id}_output_data.csv" format="csv" />
+    <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
+  </outputs>
+
+  <tests>
+    <test>
+      <param name="dataMatrix_in" value="data_reg.csv"/>
+      <param name="trans_name" value="log" />
+      <param name="output_log" value = "output_logs.txt" />
+      <param name="output_data" value = "output_data.csv" />
+    </test>
+  </tests>
+
+  
+  <help>
+
+
+====================================
+Data transformation
+====================================
+
+.. class:: infomark
+    
+**Authors** Yun Xu (Metaboflow, University of Liverpool) 
+    
+-----------
+Description
+-----------
+    
+| This tool provides a function for data transformation using natural logarithm, inverse hyperbolic sine or square root.
+
+
+
+    
+-----------
+Input files
+-----------
+ 
++-------------------------------+---------+
+| Parameters:                   |  Format |
++===============================+=========+
+| 1 : Data matrix file          | csv     |
++-------------------------------+---------+
+
+
+|
+
+----------
+Parameters
+----------
+	  
+Type of transformation
+	| Select data transformation method, can be log (natural logarithm), asinh (inverse hyperbolic sine) or sqrt (square root). asihn is essentially the same as log transformation except that asinh(0) = 0 rather than undefined for log(0).
+	|
+
+------------
+Output files
+------------
+
+vssp_output_data.csv
+	| The data after transformation.
+	|
+
+vssp_output_log.txt
+	| Text file of running messages.
+	|
+    
+  
+</help>
+  
+  <citations>
+    <citation type="doi">10.1039/C4AN01061B</citation>
+    <citation type="doi">10.1021/ac020194w</citation>
+    <citation type="doi">10.1366/0003702894202201</citation>
+    <citation type="doi">10.1016/S0169-7439(99)00066-0</citation>
+  </citations>
+  
+</tool>

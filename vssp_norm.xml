@@ -1,0 +1,139 @@
+<tool id="vssp_norm" name="Vibrational spectra signal processing - signal normalization" version="1.0.0">
+  <description>Signal normalization using SNV, EMSC or to a unit norm</description>
+  
+  <requirements>
+    <requirement type="package">r-batch</requirement>
+    <requirement type="package">r-rspectra</requirement>
+    <requirement type="package">r-mass</requirement>
+    <requirement type="package">r-matrix</requirement>
+    <requirement type="package">r-pracma</requirement>   
+    <requirement type="package">r-signal</requirement>   
+  </requirements>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" />
+  </stdio>
+  
+  <command><![CDATA[
+  Rscript $__tool_directory__/vssp_norm_wrapper.R
+  dataMatrix_in "$dataMatrix_in"
+  norm_name "$norm.norm_name"
+  norm_param "$norm.norm_param"
+  output_log "$output_log"
+  output_data "$output_data"
+  file_figures "$figures"
+  ]]></command>    
+  
+  <inputs>
+    <param name="dataMatrix_in" type="data" label="Data matrix file" help="" format="csv" />
+    <conditional name="norm">
+	  <param name="norm_name" type="select" label="Type of normalization">
+	  	<option value="none">none</option>
+		<option value="snv">Standard Normal Variate</option>
+	  	<option value="tot">To sum of squares of 1</option>
+		<option value="emsc" selected="true">Extended Multiplicative Signal Correction</option>
+	  </param>
+	  <when value="none">
+		<param name="norm_param" type="hidden" value="NA" />
+	  </when>
+	  <when value="snv">
+		<param name="norm_param" type="hidden" value="NA" />
+   	  </when>
+	  <when value="tot">
+		<param name="norm_param" type="hidden" value="NA" />
+	  </when>
+	  <when value="emsc">
+		<param name="norm_param" type="integer" value="3" label="Normalization parameter: the order of polynomial" />
+	  </when>
+    </conditional>
+
+
+  </inputs>
+  
+  <outputs>
+    <data name="output_data" label="${tool.id}_output_data.csv" format="csv" />
+    <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
+    <data name="figures" label="${tool.id}_figures.pdf" format="pdf" />
+  </outputs>
+
+  <tests>
+    <test>
+      <param name="dataMatrix_in" value="data_reg.csv"/>
+      <param name="norm_name" value="snv" />
+      <param name="norm_param" value="NA" />
+      <param name="output_log" value = "output_logs.txt" />
+      <param name="output_data" value = "output_data.csv" />
+      <param name="file_figures" value = "Figures.pdf" /> 
+    </test>
+  </tests>
+
+  
+  <help>
+
+
+====================================
+Baseline correction using arPLS
+====================================
+
+.. class:: infomark
+    
+**Authors** Yun Xu (Metaboflow, University of Liverpool) 
+    
+-----------
+Description
+-----------
+    
+| This tool provides a function for signal normalization using SNV, EMSC or to unit norm.
+
+
+
+    
+-----------
+Input files
+-----------
+ 
++-------------------------------+---------+
+| Parameters:                   |  Format |
++===============================+=========+
+| 1 : Data matrix file          | csv     |
++-------------------------------+---------+
+
+
+|
+
+----------
+Parameters
+----------
+	  
+Type of normalization
+	| Select signal normalization method, can be SNV, to sum of squares of 1 or EMSC. EMSC requires the order of polynomial to be set with 3 as default. Chose "none" to skip.
+	|
+
+------------
+Output files
+------------
+
+vssp_output_data.csv
+	| The spectra after normalization.
+	|
+
+
+vssp_figure.pdf
+	| A figure of all the processed spectra plotted together. 
+	| 
+
+vssp_output_log.txt
+	| Text file of running messages.
+	|
+    
+  
+</help>
+  
+  <citations>
+    <citation type="doi">10.1039/C4AN01061B</citation>
+    <citation type="doi">10.1021/ac020194w</citation>
+    <citation type="doi">10.1366/0003702894202201</citation>
+    <citation type="doi">10.1016/S0169-7439(99)00066-0</citation>
+  </citations>
+  
+</tool>

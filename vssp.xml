@@ -6,7 +6,8 @@
     <requirement type="package">r-rspectra</requirement>
     <requirement type="package">r-mass</requirement>
     <requirement type="package">r-matrix</requirement>
-    <requirement type="package">r-pracma</requirement>      
+    <requirement type="package">r-pracma</requirement>   
+    <requirement type="package">r-signal</requirement>   
   </requirements>
 
   <stdio>
@@ -22,10 +23,13 @@
   norm_name "$norm.norm_type"
   norm_param "$norm.norm_param"
   smooth "$sm.smooth"
-  sm_param "$sm.sm_param"
+  sm_win "$sm.sm_win"
+  sm_order "$sm.sm_order"
+  sm_derv "$sm.sm_derv"
   mos "$mos"
   output_log "$output_log"
   output_data "$output_data"
+  output_meta "$output_meta"
   file_figures "$figures"
   ]]></command>    
   
@@ -41,19 +45,23 @@
 		<param name="bl_param" type="integer" value="1000000" label="Smoothness parameter for arPLS" />
 	</when>
 	<when value="no">
-		<param name="bl_param" type="text" value="NA" label="Not applicable" />
+		<param name="bl_param" type="hidden" value="NA" />
 	</when>
     </conditional>	
     <conditional name="sm">
-	<param name="smooth" type="select" label="Smooth the spectra?">
+	<param name="smooth" type="select" label="Smooth/Take derivative of the spectra?">
 		<option value="no">no</option>
 		<option value="yes"  selected="true">yes</option>
 	</param>
 	<when value="no">
-		<param name="sm_param" type="text" value="NA" label="Not applicable" />
-	</when>
+		<param name="sm_win" type="hidden" value="NA" />
+		<param name="sm_order" type="hidden" value="NA" />
+		<param name="sm_derv" type="hidden" value="NA" />
+	</when>		
 	<when value="yes">
-		<param name="sm_param" type="integer" value="7" label="Smooth window width" />
+		<param name="sm_win" type="integer" value="7" label="Smooth window width" />
+		<param name="sm_order" type="integer" value="3" label="Order of polynomial" />
+		<param name="sm_derv" type="integer" value="0" label="kth derivative, 0 for smoothing" />
 	</when>
     </conditional>
     <conditional name="norm">
@@ -64,13 +72,13 @@
 		<option value="emsc" selected="true">Extended Multiplicative Signal Correction</option>
 	  </param>
 	  <when value="none">
-		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+		<param name="norm_param" type="hidden" value="NA" />
 	  </when>
 	  <when value="snv">
-		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+		<param name="norm_param" type="hidden" value="NA" />
    	  </when>
 	  <when value="tot">
-		<param name="norm_param" type="text" value="NA" label="Normalization parameter" />
+		<param name="norm_param" type="hidden" value="NA" />
 	  </when>
 	  <when value="emsc">
 		<param name="norm_param" type="integer" value="3" label="Normalization parameter: the order of polynomial" />
@@ -84,7 +92,8 @@
   </inputs>
   
   <outputs>
-    <data name="output_data" label="${tool.id}_output_data.csv" format="tabular" />
+    <data name="output_data" label="${tool.id}_output_data.csv" format="csv" />
+    <data name="output_meta" label="${tool.id}_output.meta.csv" format="csv" />
     <data name="output_log" label="${tool.id}_output_logs.txt" format="txt" />
     <data name="figures" label="${tool.id}_figures.pdf" format="pdf" />
   </outputs>
@@ -98,10 +107,13 @@
       <param name="norm_name" value="none" />  
       <param name="norm_param" value="5" />   
       <param name="smooth" value="yes" />
-      <param name="sm_param" value="7" />
+      <param name="sm_win" value="7" />
+      <param name="sm_order" value="3" />
+      <param name="sm_derv" value="0" />
       <param name="mos" value = "yes" />
       <param name="output_log" value = "output_logs.txt" />
       <param name="output_data" value = "output_data.csv" />
+      <param name="output_meta" value = "output_meta.csv" />
       <param name="file_figures" value = "Figures.pdf" /> 
     </test>
   </tests>
@@ -139,9 +151,8 @@ Input files
 | 2 : Sample metadata file      | csv     |
 +-------------------------------+---------+
 
-| This toolbox provides a set of tools to perform common signal processing techniques for vibrational spectra includes: (1) asymmetrically reweighted penalized least square smoothing (arPLS) for baseline correction; (2) Smooth using Gaussian filter; (3) normalize spectra using standard normal variate (SNV), extended multiplicative signal correction (EMSC) or to sum of squares of 1. A multivariate statistic called morphological scores is also provided to assess the signal-to-noise raito of each spectra, useful to remove poor samples.
-|	  
-
+| This toolbox provides a set of tools to perform common signal processing techniques for vibrational spectra includes: (1) asymmetrically reweighted penalized least square smoothing (arPLS) for baseline correction; (2) Smooth and derivative using Savitzky-Golay filter; (3) normalize spectra using standard normal variate (SNV), extended multiplicative signal correction (EMSC) or to sum of squares of 1. A multivariate statistic called morphological scores is also provided to assess the signal-to-noise raito of each spectra, useful to identify poor quality samples.
+|
 
 ----------
 Parameters
@@ -151,8 +162,8 @@ Baseline correction?
 	| "yes" for performing baseline correction using arpls, a smooth parameter need to be provided with 1000000 as default, "no" to skip.
 	|
 
-Smooth the spectra?
-	| "yes" for smoothing using gaussian filter, a window width need to be provided with 7 as default, "no" to skip.
+Smooth/Take kth derivative of the spectra?
+	| "yes" for smoothing and calculate kth derivative of the spectra using Savizky-Golay filter, a window width, an order of polynomial and k need to be specified. If k = 0, the spectra will only be smoothed. Chose "no" to skip.
 	|	
 
 Type of normalization
